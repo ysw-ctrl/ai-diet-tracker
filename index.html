@@ -30,10 +30,14 @@
 
             <!-- 兩大核心按鈕 -->
             <div class="grid grid-cols-2 gap-4">
-                <button class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
-                    <span class="text-2xl mb-2">📸</span>
-                    <span class="text-sm font-medium">拍餐點</span>
-                </button>
+                <!-- 加入隱藏的相機上傳元件 -->
+<input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+
+<!-- 修改後的按鈕，加入 onclick 事件來觸發相機 -->
+<button onclick="document.getElementById('cameraInput').click()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
+    <span class="text-2xl mb-2">📸</span>
+    <span class="text-sm font-medium">拍餐點</span>
+</button>
                 <button class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
                     <span class="text-2xl mb-2">🏃‍♂️</span>
                     <span class="text-sm font-medium">記運動</span>
