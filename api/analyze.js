@@ -1,3 +1,4 @@
+// api/analyze.js
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: '只接受 POST 請求' });
@@ -15,8 +16,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 修正點：將模型名稱改為支援度最高的 gemini-1.5-pro
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+        // 修正點：網址端點直接換成你清單中支援的最新穩定多模態模型 gemini-2.5-flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -36,7 +37,8 @@ export default async function handler(req, res) {
             res.status(200).json({ result: aiText });
         } else {
             console.error("Gemini API 回應異常:", data);
-            res.status(500).json({ error: 'AI 無法辨識此圖片，請換一張試試' });
+            // 如果還是有問題，直接把 Google 的錯誤訊息報給前端看，方便秒殺問題
+            res.status(500).json({ error: data.error?.message || 'AI 無法辨識此圖片，請換一張試試' });
         }
         
     } catch (error) {
