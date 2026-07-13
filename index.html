@@ -20,7 +20,8 @@
             <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
                 <p class="text-sm text-green-700 font-medium mb-1">今日可消耗熱量赤字</p>
                 <div class="flex items-end gap-2">
-                    <span class="text-3xl font-bold text-green-600">350</span>
+                    <!-- 加上 id 讓 JavaScript 可以動態修改數字 -->
+                    <span id="calorieDeficit" class="text-3xl font-bold text-green-600">350</span>
                     <span class="text-sm text-green-600 mb-1">kcal</span>
                 </div>
                 <div class="w-full bg-green-200 rounded-full h-2 mt-3">
@@ -30,33 +31,36 @@
 
             <!-- 兩大核心按鈕 -->
             <div class="grid grid-cols-2 gap-4">
-                <!-- 加入隱藏的相機上傳元件 -->
-<input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
+                <!-- 隱藏的相機上傳元件 -->
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden">
 
-<!-- 修改後的按鈕，加入 onclick 事件來觸發相機 -->
-<button onclick="document.getElementById('cameraInput').click()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
-    <span class="text-2xl mb-2">📸</span>
-    <span class="text-sm font-medium">拍餐點</span>
-</button>
-                <button class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
+                <!-- 拍餐點按鈕 -->
+                <button onclick="document.getElementById('cameraInput').click()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
+                    <span class="text-2xl mb-2">📸</span>
+                    <span class="text-sm font-medium">拍餐點</span>
+                </button>
+                
+                <!-- 記運動按鈕 (加入 onclick 呼叫函式) -->
+                <button onclick="recordExercise()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
                     <span class="text-2xl mb-2">🏃‍♂️</span>
                     <span class="text-sm font-medium">記運動</span>
                 </button>
-                <!-- 照片預覽與 AI 分析區塊 (預設隱藏) -->
-<div id="previewContainer" class="hidden mt-6 p-4 border border-gray-200 rounded-2xl bg-white shadow-sm">
-    <h3 class="text-sm font-bold text-gray-700 mb-2">餐點分析中</h3>
-    <img id="imagePreview" class="w-full rounded-xl shadow-sm mb-3 object-cover max-h-64" src="" alt="餐點預覽">
-    
-    <!-- 模擬載入中的動畫 -->
-    <div id="aiLoading" class="text-sm text-gray-500 text-center animate-pulse py-2">
-        🧠 AI 營養師正在分析食物種類與份量... ⏳
-    </div>
-    
-    <!-- AI 分析結果 (預設隱藏) -->
-    <div id="aiResult" class="hidden bg-green-50 text-green-800 p-3 rounded-xl text-sm border border-green-100">
-        <!-- 結果會透過 JavaScript 塞入這裡 -->
-    </div>
-</div>
+            </div>
+
+            <!-- 照片預覽與 AI 分析區塊 (預設隱藏) -->
+            <div id="previewContainer" class="hidden mt-6 p-4 border border-gray-200 rounded-2xl bg-white shadow-sm">
+                <h3 class="text-sm font-bold text-gray-700 mb-2">餐點分析中</h3>
+                <img id="imagePreview" class="w-full rounded-xl shadow-sm mb-3 object-cover max-h-64" src="" alt="餐點預覽">
+                
+                <!-- 載入中的動畫 -->
+                <div id="aiLoading" class="text-sm text-gray-500 text-center animate-pulse py-2">
+                    🧠 AI 營養師正在分析食物與熱量... ⏳
+                </div>
+                
+                <!-- AI 分析結果 -->
+                <div id="aiResult" class="hidden bg-green-50 text-green-800 p-3 rounded-xl text-sm border border-green-100">
+                    <!-- 結果會透過 JavaScript 塞入這裡 -->
+                </div>
             </div>
         </div>
 
@@ -64,7 +68,8 @@
         <div class="p-6 border-t border-gray-100">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold text-gray-800">體態趨勢</h2>
-                <button class="text-xs bg-gray-100 px-3 py-1 rounded-full">+ 紀錄今日體重</button>
+                <!-- 紀錄體重按鈕 (加入 onclick 呼叫函式) -->
+                <button onclick="recordWeight()" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition">+ 紀錄今日體重</button>
             </div>
             <div class="relative h-48 w-full">
                 <canvas id="bodyChart"></canvas>
@@ -72,10 +77,11 @@
         </div>
     </div>
 
-    <!-- Chart.js 設定 -->
+    <!-- 所有的 JavaScript 邏輯整合在這裡 -->
     <script>
+        // 1. 初始化 Chart.js 折線圖
         const ctx = document.getElementById('bodyChart').getContext('2d');
-        new Chart(ctx, {
+        const bodyChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['7/7', '7/8', '7/9', '7/10', '7/11', '7/12', '7/13'],
@@ -83,7 +89,7 @@
                     {
                         label: '體重 (kg)',
                         data: [70.5, 70.3, 70.0, 70.2, 69.8, 69.5, 69.2],
-                        borderColor: '#3B82F6', // 藍色
+                        borderColor: '#3B82F6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         yAxisID: 'y',
                         tension: 0.4,
@@ -92,7 +98,7 @@
                     {
                         label: '體脂 (%)',
                         data: [22.5, 22.4, 22.4, 22.3, 22.1, 22.0, 21.8],
-                        borderColor: '#F59E0B', // 橘色
+                        borderColor: '#F59E0B',
                         borderDash: [5, 5],
                         yAxisID: 'y1',
                         tension: 0.4
@@ -109,44 +115,91 @@
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
             }
         });
-    </script>
-<script>
-    // 監聽相機按鈕是否有選取/拍下照片
-    document.getElementById('cameraInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            // 抓取畫面上對應的區塊
-            const previewContainer = document.getElementById('previewContainer');
-            const imagePreview = document.getElementById('imagePreview');
-            const aiLoading = document.getElementById('aiLoading');
-            const aiResult = document.getElementById('aiResult');
 
-            // 顯示預覽區塊，隱藏舊的結果，顯示 Loading
-            previewContainer.classList.remove('hidden');
-            aiLoading.classList.remove('hidden');
-            aiResult.classList.add('hidden');
-
-            // 將手機拍下的照片檔案轉成網址，並放進 img 標籤中顯示
-            imagePreview.src = URL.createObjectURL(file);
-
-            // 這裡先用 setTimeout 模擬 AI 處理需要 3 秒鐘 (未來將換成真實 API 呼叫)
-            setTimeout(() => {
-                aiLoading.classList.add('hidden');
-                aiResult.classList.remove('hidden');
-                // 模擬 AI 回傳的資料
-                aiResult.innerHTML = `
-                    <p class="font-bold mb-1">辨識成功！</p>
-                    <ul class="list-disc list-inside text-gray-700 mb-2">
-                        <li>烤雞腿便當 (約 1 份)</li>
-                        <li>推估熱量：<strong>680 kcal</strong></li>
-                    </ul>
-                    <button class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition">
-                        確認並紀錄
-                    </button>
-                `;
-            }, 3000);
+        // 2. 實作「紀錄體重」功能
+        function recordWeight() {
+            const newWeight = prompt("請輸入今日體重 (kg)：");
+            if (newWeight && !isNaN(newWeight)) {
+                // 將新資料加入圖表
+                bodyChart.data.labels.push('今日');
+                bodyChart.data.datasets[0].data.push(parseFloat(newWeight));
+                
+                // 為了讓圖表對稱，體脂先複製前一天的數據
+                const lastBf = bodyChart.data.datasets[1].data.slice(-1)[0];
+                bodyChart.data.datasets[1].data.push(lastBf);
+                
+                bodyChart.update(); // 更新圖表畫面
+                alert("✅ 體重紀錄成功！圖表已更新。");
+            }
         }
-    });
-</script>
+
+        // 3. 實作「記運動」功能
+        function recordExercise() {
+            const burnedCals = prompt("請輸入運動消耗的卡路里 (例如：300)：");
+            if (burnedCals && !isNaN(burnedCals)) {
+                // 抓取目前的熱量赤字並加上運動消耗
+                const deficitEl = document.getElementById('calorieDeficit');
+                const currentDeficit = parseInt(deficitEl.innerText);
+                deficitEl.innerText = currentDeficit + parseInt(burnedCals);
+                
+                alert(`🏃‍♂️ 紀錄成功！熱量赤字增加了 ${burnedCals} kcal。`);
+            }
+        }
+
+        // 4. 實作「AI 拍照辨識熱量」功能 (呼叫 Vercel 後端)
+        document.getElementById('cameraInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const previewContainer = document.getElementById('previewContainer');
+                const imagePreview = document.getElementById('imagePreview');
+                const aiLoading = document.getElementById('aiLoading');
+                const aiResult = document.getElementById('aiResult');
+
+                // 顯示預覽圖片與 Loading 狀態
+                previewContainer.classList.remove('hidden');
+                aiLoading.classList.remove('hidden');
+                aiResult.classList.add('hidden');
+                imagePreview.src = URL.createObjectURL(file);
+
+                // 將圖片轉換為 Base64 格式
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async function () {
+                    const base64String = reader.result.split(',')[1]; 
+
+                    try {
+                        // 呼叫我們寫好的 Vercel 後端 API
+                        const response = await fetch('/api/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ imageBase64: base64String })
+                        });
+                        
+                        const data = await response.json();
+
+                        aiLoading.classList.add('hidden');
+                        aiResult.classList.remove('hidden');
+                        
+                        if (data.result) {
+                            const formattedText = data.result.replace(/\n/g, '<br>');
+                            aiResult.innerHTML = `
+                                <p class="font-bold mb-2">🍽️ 分析結果：</p>
+                                <div class="text-gray-700 mb-3">${formattedText}</div>
+                                <button class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition" onclick="this.innerText='已記錄！'; this.classList.add('bg-gray-400'); this.disabled=true;">
+                                    確認並紀錄
+                                </button>
+                            `;
+                        } else {
+                            aiResult.innerHTML = `<p class="text-red-500">分析失敗：${data.error}</p>`;
+                        }
+                    } catch (error) {
+                        aiLoading.classList.add('hidden');
+                        aiResult.classList.remove('hidden');
+                        aiResult.innerHTML = `<p class="text-red-500">網路連線發生錯誤，請重試。</p>`;
+                    }
+                };
+            }
+        });
+    </script>
 </body>
 </html>
