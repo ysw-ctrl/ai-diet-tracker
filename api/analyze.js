@@ -15,8 +15,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 修正點：將網址中的模型名稱更新為 gemini-1.5-flash-latest
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+        // 修正點：將模型名稱改為支援度最高的 gemini-1.5-pro
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
