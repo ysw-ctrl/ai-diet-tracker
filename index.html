@@ -42,6 +42,21 @@
                     <span class="text-2xl mb-2">🏃‍♂️</span>
                     <span class="text-sm font-medium">記運動</span>
                 </button>
+                <!-- 照片預覽與 AI 分析區塊 (預設隱藏) -->
+<div id="previewContainer" class="hidden mt-6 p-4 border border-gray-200 rounded-2xl bg-white shadow-sm">
+    <h3 class="text-sm font-bold text-gray-700 mb-2">餐點分析中</h3>
+    <img id="imagePreview" class="w-full rounded-xl shadow-sm mb-3 object-cover max-h-64" src="" alt="餐點預覽">
+    
+    <!-- 模擬載入中的動畫 -->
+    <div id="aiLoading" class="text-sm text-gray-500 text-center animate-pulse py-2">
+        🧠 AI 營養師正在分析食物種類與份量... ⏳
+    </div>
+    
+    <!-- AI 分析結果 (預設隱藏) -->
+    <div id="aiResult" class="hidden bg-green-50 text-green-800 p-3 rounded-xl text-sm border border-green-100">
+        <!-- 結果會透過 JavaScript 塞入這裡 -->
+    </div>
+</div>
             </div>
         </div>
 
