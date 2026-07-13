@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 減脂日記 Pro</title>
+    <title>AI 體態日記 Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -16,16 +16,17 @@
         </header>
 
         <div class="p-6 space-y-6">
-            <!-- 熱量總覽 -->
-            <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+            <!-- 熱量總覽 (優化為剩餘需求倒數) -->
+            <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100">
                 <div class="flex justify-between items-start mb-1">
-                    <p class="text-sm text-green-700 font-medium">今日已累積熱量赤字</p>
-                    <span id="deficitInfo" class="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded-full">動態計算中</span>
+                    <p class="text-sm text-blue-700 font-medium">今日剩餘所需熱量</p>
+                    <span id="calorieInfo" class="text-[10px] text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">動態計算中</span>
                 </div>
                 <div class="flex items-end gap-2">
-                    <span id="calorieDeficit" class="text-3xl font-bold text-green-600">--</span>
-                    <span class="text-sm text-green-600 mb-1">kcal</span>
+                    <span id="remainingCalories" class="text-3xl font-bold text-blue-600">--</span>
+                    <span class="text-sm text-blue-600 mb-1">kcal</span>
                 </div>
+                <p class="text-[10px] text-gray-400 mt-2">💡 依臨床文獻修正：進食會「減掉」剩餘需求；運動則會「增加」所需能量以保護肌肉。</p>
             </div>
 
             <!-- 核心功能按鈕 -->
@@ -36,7 +37,7 @@
                     <span class="text-sm font-medium">拍照 / 相簿</span>
                 </button>
                 <button onclick="recordExerciseAI()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
-                    <span class="text-2xl mb-2">🏃‍♂️</span>
+                    <span class="text-2xl mb-2">跑🏃‍♂️</span>
                     <span class="text-sm font-medium">智慧記運動</span>
                 </button>
             </div>
@@ -45,8 +46,8 @@
             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
                 <label class="text-xs font-bold text-gray-500 block mb-2">🍽️ 手動輸入或修改餐點敘述：</label>
                 <div class="flex gap-2">
-                    <input type="text" id="foodTextInput" placeholder="例如：吃了兩顆水煮蛋和一杯黑咖啡" class="flex-1 text-sm border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-green-500">
-                    <button onclick="analyzeTextFood()" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition">分析</button>
+                    <input type="text" id="foodTextInput" placeholder="例如：吃了兩顆水煮蛋和一杯黑咖啡" class="flex-1 text-sm border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-blue-500">
+                    <button onclick="analyzeTextFood()" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition">分析</button>
                 </div>
             </div>
 
@@ -55,23 +56,23 @@
                 <h3 class="text-sm font-bold text-gray-700 mb-2">餐點分析中</h3>
                 <img id="imagePreview" class="w-full rounded-xl shadow-sm mb-3 object-cover max-h-64 hidden" src="" alt="餐點預覽">
                 <div id="aiLoading" class="text-sm text-gray-500 text-center animate-pulse py-2">🧠 AI 正在計算熱量... ⏳</div>
-                <div id="aiResult" class="hidden bg-green-50 text-green-800 p-3 rounded-xl text-sm border border-green-100"></div>
+                <div id="aiResult" class="hidden bg-blue-50 text-blue-800 p-3 rounded-xl text-sm border border-blue-100"></div>
             </div>
 
             <!-- AI 營養師建議區塊 -->
-            <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4">
                 <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-sm font-bold text-emerald-800">💡 AI 營養師碎碎念</h3>
-                    <button onclick="getAIAdvice()" class="text-xs text-emerald-600 hover:underline">獲取新建議</button>
+                    <h3 class="text-sm font-bold text-blue-800">💡 AI 營養師碎碎念</h3>
+                    <button onclick="getAIAdvice()" class="text-xs text-blue-600 hover:underline">獲取新建議</button>
                 </div>
-                <p id="aiAdviceText" class="text-xs text-emerald-700 leading-relaxed">按下右上角，讓 AI 根據你目前的紀錄提供客製化減脂建議吧！</p>
+                <p id="aiAdviceText" class="text-xs text-blue-700 leading-relaxed">按下右上角，讓 AI 根據你目前的紀錄提供客製化均衡飲食與運動建議吧！</p>
             </div>
 
             <!-- 最近 10 筆紀錄欄 -->
             <div class="border border-gray-200 rounded-2xl p-4 bg-white shadow-sm">
                 <h3 class="text-sm font-bold text-gray-700 mb-3">📋 最近動態紀錄 (最近 10 筆)</h3>
                 <ul id="logList" class="space-y-2 max-h-60 overflow-y-auto text-xs text-gray-600">
-                    <li class="text-gray-400 italic">目前尚無 any 紀錄...</li>
+                    <li class="text-gray-400 italic">目前尚無任何紀錄...</li>
                 </ul>
             </div>
         </div>
@@ -94,11 +95,8 @@
         document.getElementById('currentDateLabel').innerText = `${today.getFullYear()}/${(today.getMonth()+1)}/${today.getDate()}`;
 
         // --- 核心資料持久化設定 ---
-        
-        // 1. 歷史動態文字紀錄
         let recentLogs = JSON.parse(localStorage.getItem('diet_logs')) || [];
 
-        // 2. 體態折線圖數據歷史（若全新的使用者沒有資料，則給予一組合理的初始減脂預設值）
         const defaultBodyHistory = {
             labels: ['7/7', '7/8', '7/9', '7/10', '7/11', '7/12', '今日'],
             weights: [70.5, 70.3, 70.0, 70.2, 69.8, 69.5, 69.0],
@@ -106,26 +104,34 @@
         };
         let bodyHistory = JSON.parse(localStorage.getItem('body_history')) || defaultBodyHistory;
 
-        // 3. 熱量赤字管理機制
-        // 動態公式：基礎赤字目標 = 當前體重 * 7
+        // 本地獨立讀取與儲存今日飲食熱量與運動熱量
+        let savedExerciseCals = parseInt(localStorage.getItem('today_exercise_cals')) || 0;
+        let savedFoodCals = parseInt(localStorage.getItem('today_food_cals')) || 0;
+
         function getLatestWeight() {
             if (bodyHistory.weights && bodyHistory.weights.length > 0) {
                 return bodyHistory.weights[bodyHistory.weights.length - 1];
             }
-            return 70; // 徹底防呆極端狀況
+            return 70;
         }
 
         let currentWeight = getLatestWeight();
-        let baseDeficitGoal = Math.round(currentWeight * 7);
+        let baseTargetCalories = calculateOptimalTarget(currentWeight);
 
-        // 從本地讀取今日累積的運動加成卡路里
-        let savedExerciseCals = parseInt(localStorage.getItem('today_exercise_cals')) || 0;
-        
-        // 更新上方熱量大數字顯示
+        // 💡 參考文獻優化函數：基於動態 TEE 減去臨床最佳的 374 大卡限制量，達到最高減脂效益並守護瘦體組織[cite: 1]
+        function calculateOptimalTarget(weight) {
+            // 估算使用者的每日總能量消耗 (TEE Baseline 估算約為體重 * 31.5 大卡，逼近文獻平均值)[cite: 1]
+            let estimatedTee = Math.round(weight * 31.5);
+            const LOMBARDO_OPTIMAL_REDUCTION = 374; 
+            return estimatedTee - LOMBARDO_OPTIMAL_REDUCTION;
+        }
+
+        // 更新上方熱量大數字顯示 (倒數計時邏輯)
         function refreshCalorieUI() {
-            const totalDeficit = baseDeficitGoal + savedExerciseCals;
-            document.getElementById('calorieDeficit').innerText = totalDeficit;
-            document.getElementById('deficitInfo').innerText = `基礎 ${baseDeficitGoal} + 運動 ${savedExerciseCals}`;
+            // 核心邏輯：剩餘所需熱量 = 基礎目標 + 運動增加需求 - 進食扣除補充
+            const remaining = baseTargetCalories + savedExerciseCals - savedFoodCals;
+            document.getElementById('remainingCalories').innerText = remaining;
+            document.getElementById('calorieInfo').innerText = `目標 ${baseTargetCalories} | ＋運動 ${savedExerciseCals} | －已進食 ${savedFoodCals}`;
         }
 
         // --- 初始化 Chart.js 雙軸折線圖 ---
@@ -145,14 +151,13 @@
                 scales: {
                     y: { type: 'linear', display: true, position: 'left', title: {display: true, text: 'kg'} },
                     y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: {display: true, text: '%'} }
-                },
+                ],
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
             }
         });
 
         // --- 互動功能函式 ---
 
-        // 更新文字動態紀錄 UI
         function updateLogUI() {
             const logList = document.getElementById('logList');
             if (recentLogs.length === 0) {
@@ -176,52 +181,48 @@
             updateLogUI();
         }
 
-        // 紀錄體重與體脂 (寫入 LocalStorage，動態連動赤字公式)
+        // 紀錄體重與體脂 (連動文獻修正之目標熱量公式)[cite: 1]
         function recordBodyStats() {
-            const weight = prompt(`請輸入今日體重 (kg)，目前基礎公式依此計算：`, currentWeight);
+            const weight = prompt(`請輸入今日體重 (kg)，基礎熱量需求將依此動態調整：`, currentWeight);
             if (weight && !isNaN(weight)) {
                 const fat = prompt("請輸入今日體脂 (%)：");
                 if (fat && !isNaN(fat)) {
                     const now = new Date();
                     const dateStr = `${now.getMonth()+1}/${now.getDate()}`;
                     
-                    // 推入數據
                     bodyHistory.labels.push(dateStr);
                     bodyHistory.weights.push(parseFloat(weight));
                     bodyHistory.fats.push(parseFloat(fat));
                     
-                    // 圖表最多優雅呈現最近 12 筆
                     if (bodyHistory.labels.length > 12) {
                         bodyHistory.labels.shift();
                         bodyHistory.weights.shift();
                         bodyHistory.fats.shift();
                     }
                     
-                    // 永久存入瀏覽器
                     localStorage.setItem('body_history', JSON.stringify(bodyHistory));
                     
-                    // 即時更新圖表
                     bodyChart.data.labels = bodyHistory.labels;
                     bodyChart.data.datasets[0].data = bodyHistory.weights;
                     bodyChart.data.datasets[1].data = bodyHistory.fats;
                     bodyChart.update();
                     
-                    // 重新動態校正熱量赤字核心
+                    // 即時依文獻修正更新基礎目標熱量[cite: 1]
                     currentWeight = parseFloat(weight);
-                    baseDeficitGoal = Math.round(currentWeight * 7);
+                    baseTargetCalories = calculateOptimalTarget(currentWeight);
                     refreshCalorieUI();
                     
-                    addLog(`📈 紀錄體態：${weight} kg / ${fat} % (赤字已依體重調整為 ${baseDeficitGoal + savedExerciseCals} kcal)`);
+                    addLog(`📈 紀錄體態：${weight} kg / ${fat} % (基礎目標熱量已優化調整)`);
                 }
             }
         }
 
-        // 智慧運動轉換（累加運動赤字至 LocalStorage）
+        // 智慧運動轉換（運動後需要更多熱量，因此累加數值）
         async function recordExerciseAI() {
             const desc = prompt("請描述你今天的運動（例如：我今天跑步了60分鐘，10km）：");
             if (!desc) return;
 
-            alert("🧠 AI 正在精算該運動消耗的熱量，請稍候...");
+            alert("🧠 AI 正在計算該運動需額外補充的熱量，請稍候...");
 
             try {
                 const response = await fetch('/api/analyze', {
@@ -234,13 +235,12 @@
                 const burnedCals = parseInt(data.result.replace(/[^0-9]/g, ''));
                 
                 if (!isNaN(burnedCals) && burnedCals > 0) {
-                    // 運動卡路里累加進本地端儲存
                     savedExerciseCals += burnedCals;
                     localStorage.setItem('today_exercise_cals', savedExerciseCals);
                     
                     refreshCalorieUI();
-                    addLog(`🏃‍♂️ ${desc} (AI 估算消耗：${burnedCals} kcal)`);
-                    alert(`✅ 成功！AI 判定此運動消耗了 ${burnedCals} kcal，已累加計入赤字！`);
+                    addLog(`🏃‍♂️ ${desc} (AI 估算增加熱量需求：+${burnedCals} kcal)`);
+                    alert(`✅ 成功！AI 判定此運動需額外補充 ${burnedCals} kcal，已加計入今日所需熱量！`);
                 } else {
                     alert("AI 無法精準估算卡路里，請敘述得更具體一點（包含時間或強度）。");
                 }
@@ -249,7 +249,7 @@
             }
         }
 
-        // 用文字分析餐點
+        // 用文字分析餐點（進食已補充足夠熱量，因此扣除剩餘需求）
         async function analyzeTextFood() {
             const text = document.getElementById('foodTextInput').value;
             if (!text) return alert("請先輸入餐點描述文字喔！");
@@ -320,11 +320,15 @@
             if (data.result) {
                 document.getElementById('foodTextInput').value = data.result.replace(/\n/g, ' ');
                 const formattedText = data.result.replace(/\n/g, '<br>');
+                
+                // 從 AI 結果文字中初步抓取數字作為預設卡路里
+                const detectedCals = parseInt(data.result.match(/\d+/)) || 0;
+
                 aiResult.innerHTML = `
                     <p class="font-bold mb-1">🍽️ 分析結果：</p>
                     <div class="text-gray-700 mb-2">${formattedText}</div>
-                    <button class="w-full bg-green-500 text-white py-1 rounded-lg text-xs" onclick="confirmMealLog('${logTitle}', this)">
-                        確認寫入動態紀錄欄
+                    <button class="w-full bg-blue-500 text-white py-1 rounded-lg text-xs font-medium" onclick="confirmMealLog('${logTitle}', ${detectedCals}, this)">
+                        確認已補充足夠熱量（自剩餘需求扣除）
                     </button>
                 `;
             } else {
@@ -332,11 +336,24 @@
             }
         }
 
-        function confirmMealLog(title, btn) {
-            addLog(title);
-            btn.innerText = '已記錄！';
-            btn.disabled = true;
-            btn.classList.add('bg-gray-400');
+        function confirmMealLog(title, detectedCals, btn) {
+            // 防呆或讓使用者輸入更精準的進食大卡數
+            const finalCalsStr = prompt("確認或修正此餐點補充的熱量 (kcal)：", detectedCals);
+            const finalCals = parseInt(finalCalsStr);
+            
+            if (!isNaN(finalCals) && finalCals >= 0) {
+                savedFoodCals += finalCals;
+                localStorage.setItem('today_food_cals', savedFoodCals);
+                
+                refreshCalorieUI();
+                addLog(`${title} (已補充：-${finalCals} kcal)`);
+                
+                btn.innerText = '已成功扣除剩餘需求！';
+                btn.disabled = true;
+                btn.classList.replace('bg-blue-500', 'bg-gray-400');
+            } else {
+                alert("請輸入有效的熱量數字。");
+            }
         }
 
         function showMealError() {
@@ -345,10 +362,10 @@
             document.getElementById('aiResult').innerHTML = `<p class="text-red-500">網路錯誤，請重試。</p>`;
         }
 
-        // 獲取 AI 營養師建議
+        // 獲取 AI 營養師修復性建議
         async function getAIAdvice() {
             const adviceText = document.getElementById('aiAdviceText');
-            adviceText.innerText = "🧠 營養師正在看你的紀錄，請稍候...";
+            adviceText.innerText = "🧠 營養師正在評估你的熱量供需狀態，請稍候...";
 
             const logsSummary = recentLogs.length > 0 
                 ? recentLogs.map(l => l.content).join(', ') 
@@ -361,7 +378,7 @@
                     body: JSON.stringify({ type: 'advice', logsSummary: logsSummary })
                 });
                 const data = await response.json();
-                adviceText.innerText = data.result || "今天也要繼續加油喔！";
+                adviceText.innerText = data.result || "保持規律，穩定往目標邁進！";
             } catch (error) {
                 adviceText.innerText = "連線失敗，營養師去喝水了，晚點再試！";
             }
