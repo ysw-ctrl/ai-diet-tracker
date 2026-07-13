@@ -110,5 +110,43 @@
             }
         });
     </script>
+<script>
+    // 監聽相機按鈕是否有選取/拍下照片
+    document.getElementById('cameraInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 抓取畫面上對應的區塊
+            const previewContainer = document.getElementById('previewContainer');
+            const imagePreview = document.getElementById('imagePreview');
+            const aiLoading = document.getElementById('aiLoading');
+            const aiResult = document.getElementById('aiResult');
+
+            // 顯示預覽區塊，隱藏舊的結果，顯示 Loading
+            previewContainer.classList.remove('hidden');
+            aiLoading.classList.remove('hidden');
+            aiResult.classList.add('hidden');
+
+            // 將手機拍下的照片檔案轉成網址，並放進 img 標籤中顯示
+            imagePreview.src = URL.createObjectURL(file);
+
+            // 這裡先用 setTimeout 模擬 AI 處理需要 3 秒鐘 (未來將換成真實 API 呼叫)
+            setTimeout(() => {
+                aiLoading.classList.add('hidden');
+                aiResult.classList.remove('hidden');
+                // 模擬 AI 回傳的資料
+                aiResult.innerHTML = `
+                    <p class="font-bold mb-1">辨識成功！</p>
+                    <ul class="list-disc list-inside text-gray-700 mb-2">
+                        <li>烤雞腿便當 (約 1 份)</li>
+                        <li>推估熱量：<strong>680 kcal</strong></li>
+                    </ul>
+                    <button class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition">
+                        確認並紀錄
+                    </button>
+                `;
+            }, 3000);
+        }
+    });
+</script>
 </body>
 </html>
