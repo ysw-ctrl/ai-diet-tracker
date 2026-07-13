@@ -12,22 +12,24 @@
         <!-- Header -->
         <header class="p-6 border-b border-gray-100 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-900">今日紀錄</h1>
-            <span class="text-sm text-gray-500">2026/07/13</span>
+            <span id="currentDateLabel" class="text-sm text-gray-500">2026/07/13</span>
         </header>
 
         <div class="p-6 space-y-6">
             <!-- 熱量總覽 -->
             <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
-                <p class="text-sm text-green-700 font-medium mb-1">今日可消耗熱量赤字</p>
+                <div class="flex justify-between items-start mb-1">
+                    <p class="text-sm text-green-700 font-medium">今日已累積熱量赤字</p>
+                    <span id="deficitInfo" class="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded-full">動態計算中</span>
+                </div>
                 <div class="flex items-end gap-2">
-                    <span id="calorieDeficit" class="text-3xl font-bold text-green-600">350</span>
+                    <span id="calorieDeficit" class="text-3xl font-bold text-green-600">--</span>
                     <span class="text-sm text-green-600 mb-1">kcal</span>
                 </div>
             </div>
 
             <!-- 核心功能按鈕 -->
             <div class="grid grid-cols-2 gap-4">
-                <!-- 移除了 capture="environment"，現在會同時支援相機與相簿 -->
                 <input type="file" id="cameraInput" accept="image/*" class="hidden">
                 <button onclick="document.getElementById('cameraInput').click()" class="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 rounded-2xl shadow-sm hover:bg-gray-50 transition">
                     <span class="text-2xl mb-2">📸</span>
@@ -69,7 +71,7 @@
             <div class="border border-gray-200 rounded-2xl p-4 bg-white shadow-sm">
                 <h3 class="text-sm font-bold text-gray-700 mb-3">📋 最近動態紀錄 (最近 10 筆)</h3>
                 <ul id="logList" class="space-y-2 max-h-60 overflow-y-auto text-xs text-gray-600">
-                    <li class="text-gray-400 italic">目前尚無任何紀錄...</li>
+                    <li class="text-gray-400 italic">目前尚無 any 紀錄...</li>
                 </ul>
             </div>
         </div>
@@ -87,18 +89,54 @@
     </div>
 
     <script>
-        // 初始化紀錄陣列 (嘗試從本地瀏覽器讀取舊資料，若無則為空)
+        // 自動顯示當前日期
+        const today = new Date();
+        document.getElementById('currentDateLabel').innerText = `${today.getFullYear()}/${(today.getMonth()+1)}/${today.getDate()}`;
+
+        // --- 核心資料持久化設定 ---
+        
+        // 1. 歷史動態文字紀錄
         let recentLogs = JSON.parse(localStorage.getItem('diet_logs')) || [];
 
-        // 1. 初始化雙軸 Chart.js 折線圖 (體重 + 體脂)
+        // 2. 體態折線圖數據歷史（若全新的使用者沒有資料，則給予一組合理的初始減脂預設值）
+        const defaultBodyHistory = {
+            labels: ['7/7', '7/8', '7/9', '7/10', '7/11', '7/12', '今日'],
+            weights: [70.5, 70.3, 70.0, 70.2, 69.8, 69.5, 69.0],
+            fats: [22.5, 22.4, 22.4, 22.3, 22.1, 22.0, 21.5]
+        };
+        let bodyHistory = JSON.parse(localStorage.getItem('body_history')) || defaultBodyHistory;
+
+        // 3. 熱量赤字管理機制
+        // 動態公式：基礎赤字目標 = 當前體重 * 7
+        function getLatestWeight() {
+            if (bodyHistory.weights && bodyHistory.weights.length > 0) {
+                return bodyHistory.weights[bodyHistory.weights.length - 1];
+            }
+            return 70; // 徹底防呆極端狀況
+        }
+
+        let currentWeight = getLatestWeight();
+        let baseDeficitGoal = Math.round(currentWeight * 7);
+
+        // 從本地讀取今日累積的運動加成卡路里
+        let savedExerciseCals = parseInt(localStorage.getItem('today_exercise_cals')) || 0;
+        
+        // 更新上方熱量大數字顯示
+        function refreshCalorieUI() {
+            const totalDeficit = baseDeficitGoal + savedExerciseCals;
+            document.getElementById('calorieDeficit').innerText = totalDeficit;
+            document.getElementById('deficitInfo').innerText = `基礎 ${baseDeficitGoal} + 運動 ${savedExerciseCals}`;
+        }
+
+        // --- 初始化 Chart.js 雙軸折線圖 ---
         const ctx = document.getElementById('bodyChart').getContext('2d');
         const bodyChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['7/7', '7/8', '7/9', '7/10', '7/11', '7/12', '7/13'],
+                labels: bodyHistory.labels,
                 datasets: [
-                    { label: '體重 (kg)', data: [70.5, 70.3, 70.0, 70.2, 69.8, 69.5, 69.2], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', yAxisID: 'y', tension: 0.4, fill: true },
-                    { label: '體脂 (%)', data: [22.5, 22.4, 22.4, 22.3, 22.1, 22.0, 21.8], borderColor: '#F59E0B', borderDash: [5, 5], yAxisID: 'y1', tension: 0.4 }
+                    { label: '體重 (kg)', data: bodyHistory.weights, borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', yAxisID: 'y', tension: 0.4, fill: true },
+                    { label: '體脂 (%)', data: bodyHistory.fats, borderColor: '#F59E0B', borderDash: [5, 5], yAxisID: 'y1', tension: 0.4 }
                 ]
             },
             options: {
@@ -112,7 +150,9 @@
             }
         });
 
-        // 更新歷史紀錄欄 UI (限制最多10筆)
+        // --- 互動功能函式 ---
+
+        // 更新文字動態紀錄 UI
         function updateLogUI() {
             const logList = document.getElementById('logList');
             if (recentLogs.length === 0) {
@@ -131,32 +171,56 @@
         function addLog(content) {
             const now = new Date();
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            recentLogs.unshift({ content, time: timeStr }); // 加到最前面
-            if (recentLogs.length > 10) recentLogs.pop(); // 超過10筆就移走最舊的
+            recentLogs.unshift({ content, time: timeStr });
+            if (recentLogs.length > 10) recentLogs.pop();
             updateLogUI();
         }
 
-        // 2. 紀錄體重與體脂
+        // 紀錄體重與體脂 (寫入 LocalStorage，動態連動赤字公式)
         function recordBodyStats() {
-            const weight = prompt("請輸入今日體重 (kg)：");
+            const weight = prompt(`請輸入今日體重 (kg)，目前基礎公式依此計算：`, currentWeight);
             if (weight && !isNaN(weight)) {
                 const fat = prompt("請輸入今日體脂 (%)：");
                 if (fat && !isNaN(fat)) {
-                    bodyChart.data.labels.push('今日');
-                    bodyChart.data.datasets[0].data.push(parseFloat(weight));
-                    bodyChart.data.datasets[1].data.push(parseFloat(fat));
+                    const now = new Date();
+                    const dateStr = `${now.getMonth()+1}/${now.getDate()}`;
+                    
+                    // 推入數據
+                    bodyHistory.labels.push(dateStr);
+                    bodyHistory.weights.push(parseFloat(weight));
+                    bodyHistory.fats.push(parseFloat(fat));
+                    
+                    // 圖表最多優雅呈現最近 12 筆
+                    if (bodyHistory.labels.length > 12) {
+                        bodyHistory.labels.shift();
+                        bodyHistory.weights.shift();
+                        bodyHistory.fats.shift();
+                    }
+                    
+                    // 永久存入瀏覽器
+                    localStorage.setItem('body_history', JSON.stringify(bodyHistory));
+                    
+                    // 即時更新圖表
+                    bodyChart.data.labels = bodyHistory.labels;
+                    bodyChart.data.datasets[0].data = bodyHistory.weights;
+                    bodyChart.data.datasets[1].data = bodyHistory.fats;
                     bodyChart.update();
-                    addLog(`📈 紀錄體態：${weight} kg / ${fat} %`);
+                    
+                    // 重新動態校正熱量赤字核心
+                    currentWeight = parseFloat(weight);
+                    baseDeficitGoal = Math.round(currentWeight * 7);
+                    refreshCalorieUI();
+                    
+                    addLog(`📈 紀錄體態：${weight} kg / ${fat} % (赤字已依體重調整為 ${baseDeficitGoal + savedExerciseCals} kcal)`);
                 }
             }
         }
 
-        // 3. 智慧運動轉換（直接輸入文字描述）
+        // 智慧運動轉換（累加運動赤字至 LocalStorage）
         async function recordExerciseAI() {
             const desc = prompt("請描述你今天的運動（例如：我今天跑步了60分鐘，10km）：");
             if (!desc) return;
 
-            const deficitEl = document.getElementById('calorieDeficit');
             alert("🧠 AI 正在精算該運動消耗的熱量，請稍候...");
 
             try {
@@ -167,14 +231,16 @@
                 });
                 const data = await response.json();
                 
-                // 強制過濾非數字字元，確保安全轉為整數
                 const burnedCals = parseInt(data.result.replace(/[^0-9]/g, ''));
                 
                 if (!isNaN(burnedCals) && burnedCals > 0) {
-                    const currentDeficit = parseInt(deficitEl.innerText);
-                    deficitEl.innerText = currentDeficit + burnedCals;
+                    // 運動卡路里累加進本地端儲存
+                    savedExerciseCals += burnedCals;
+                    localStorage.setItem('today_exercise_cals', savedExerciseCals);
+                    
+                    refreshCalorieUI();
                     addLog(`🏃‍♂️ ${desc} (AI 估算消耗：${burnedCals} kcal)`);
-                    alert(`✅ 成功！AI 判定此運動消耗了 ${burnedCals} kcal，已計入赤字！`);
+                    alert(`✅ 成功！AI 判定此運動消耗了 ${burnedCals} kcal，已累加計入赤字！`);
                 } else {
                     alert("AI 無法精準估算卡路里，請敘述得更具體一點（包含時間或強度）。");
                 }
@@ -183,7 +249,7 @@
             }
         }
 
-        // 4. 用文字分析與修改餐點
+        // 用文字分析餐點
         async function analyzeTextFood() {
             const text = document.getElementById('foodTextInput').value;
             if (!text) return alert("請先輸入餐點描述文字喔！");
@@ -194,7 +260,7 @@
             const aiResult = document.getElementById('aiResult');
 
             previewContainer.classList.remove('hidden');
-            imagePreview.classList.add('hidden'); // 文字模式不顯示圖片
+            imagePreview.classList.add('hidden');
             aiLoading.classList.remove('hidden');
             aiResult.classList.add('hidden');
 
@@ -211,7 +277,7 @@
             }
         }
 
-        // 5. 處理相簿或相機照片上傳
+        // 處理相簿或相機照片上傳
         document.getElementById('cameraInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -238,14 +304,13 @@
                         body: JSON.stringify({ type: 'image', imageBase64: base64String })
                     });
                     const data = await response.json();
-                    showMealResult(data, `📸 拍照/相簿分析餐點`);
+                    showMealResult(data, `📸 照片分析餐點`);
                 } catch (error) {
                     showMealError();
                 }
             };
         });
 
-        // 顯示餐點分析結果的輔助函式
         function showMealResult(data, logTitle) {
             const aiLoading = document.getElementById('aiLoading');
             const aiResult = document.getElementById('aiResult');
@@ -253,9 +318,7 @@
             aiResult.classList.remove('hidden');
 
             if (data.result) {
-                // 自動將 AI 的分析文字填入上方的修改欄，方便使用者微調
                 document.getElementById('foodTextInput').value = data.result.replace(/\n/g, ' ');
-
                 const formattedText = data.result.replace(/\n/g, '<br>');
                 aiResult.innerHTML = `
                     <p class="font-bold mb-1">🍽️ 分析結果：</p>
@@ -282,12 +345,11 @@
             document.getElementById('aiResult').innerHTML = `<p class="text-red-500">網路錯誤，請重試。</p>`;
         }
 
-        // 6. 獲取 AI 營養師建議
+        // 獲取 AI 營養師建議
         async function getAIAdvice() {
             const adviceText = document.getElementById('aiAdviceText');
             adviceText.innerText = "🧠 營養師正在看你的紀錄，請稍候...";
 
-            // 統整目前的歷史紀錄文字傳給 AI
             const logsSummary = recentLogs.length > 0 
                 ? recentLogs.map(l => l.content).join(', ') 
                 : "目前沒有任何飲食與運動紀錄";
@@ -305,8 +367,9 @@
             }
         }
 
-        // 頁面載入時自動刷新一次歷史紀錄
+        // 頁面初始化載入
         updateLogUI();
+        refreshCalorieUI();
     </script>
 </body>
 </html>
