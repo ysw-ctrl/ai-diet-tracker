@@ -91,7 +91,8 @@
     <script>
         // 自動顯示當前日期
         const today = new Date();
-        document.getElementById('currentDateLabel').innerText = `${today.getFullYear()}/${(today.getMonth()+1)}/${today.getDate()}`;
+        const dateString = `${today.getFullYear()}/${(today.getMonth()+1)}/${today.getDate()}`;
+        document.getElementById('currentDateLabel').innerText = dateString;
 
         // --- 核心資料持久化設定 ---
         
@@ -117,6 +118,14 @@
         let currentWeight = getLatestWeight();
         // 動態公式：基礎所需目標 = 當前體重 * 30 (取代原本的 *7 赤字算法)
         let baseTargetCalories = Math.round(currentWeight * 30);
+
+        // 新增：跨日自動重置機制（檢查是否為新的一天）
+        const lastSavedDate = localStorage.getItem('last_saved_date');
+        if (lastSavedDate !== dateString) {
+            localStorage.setItem('today_exercise_cals', 0);
+            localStorage.setItem('today_food_cals', 0);
+            localStorage.setItem('last_saved_date', dateString);
+        }
 
         // 從本地讀取今日的運動增加與飲食消耗
         let savedExerciseCals = parseInt(localStorage.getItem('today_exercise_cals')) || 0;
