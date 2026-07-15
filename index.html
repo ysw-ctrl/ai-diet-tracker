@@ -179,10 +179,11 @@
             localStorage.setItem('diet_logs', JSON.stringify(recentLogs));
         }
         
-        function addLog(content) {
+function addLog(content) {
             const now = new Date();
+            const dateStr = `${now.getFullYear()}/${(now.getMonth()+1)}/${now.getDate()}`; // 【新增】取得當前日期
             const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            recentLogs.unshift({ content, time: timeStr });
+            recentLogs.unshift({ content, time: timeStr, date: dateStr }); // 【修改】將日期一同存入日誌對象中
             if (recentLogs.length > 10) recentLogs.pop();
             updateLogUI();
         }
@@ -364,14 +365,16 @@
             document.getElementById('aiResult').innerHTML = `<p class="text-red-500">網路錯誤，請重試。</p>`;
         }
 
-        // 獲取 AI 營養師建議
+// 獲取 AI 營養師建議
         async function getAIAdvice() {
             const adviceText = document.getElementById('aiAdviceText');
             adviceText.innerText = "🧠 營養師正在看你的紀錄，請稍候...";
 
-            const logsSummary = recentLogs.length > 0 
-                ? recentLogs.map(l => l.content).join(', ') 
-                : "目前沒有任何飲食與運動紀錄";
+            // 【修改】只篩選出與今天日期（dateString）相符的紀錄傳送給 AI
+            const todayLogs = recentLogs.filter(l => l.date === dateString);
+            const logsSummary = todayLogs.length > 0 
+                ? `今天是 ${dateString}。今日紀錄如下：` + todayLogs.map(l => `[${l.time}] ${l.content}`).join(', ') 
+                : `今天是 ${dateString}。今日目前沒有任何飲食與運動紀錄`;
 
             try {
                 const response = await fetch('/api/analyze', {
@@ -382,7 +385,7 @@
                 const data = await response.json();
                 adviceText.innerText = data.result || "今天也要繼續加油喔！";
             } catch (error) {
-                adviceText.innerText = "連線失敗，營養師去喝水了，晚點再試！";
+                adviceText.innerText = "連線失敗，營養師去喝水了 nudge，晚點再試！";
             }
         }
 
