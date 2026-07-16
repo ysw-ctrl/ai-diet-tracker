@@ -69,12 +69,16 @@
 
             <!-- 最近 10 筆紀錄欄 -->
             <div class="border border-gray-200 rounded-2xl p-4 bg-white shadow-sm">
-                <h3 class="text-sm font-bold text-gray-700 mb-3">📋 最近動態紀錄 (最近 10 筆)</h3>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-gray-700">📋 最近動態紀錄 (最近 10 筆)</h3>
+                    <!-- 新增：刪除上一筆按鈕 -->
+                    <button onclick="deleteLastLog()" class="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 font-medium px-2.5 py-1 rounded-full transition">↩️ 刪除上一筆</button>
+                </div>
                 <ul id="logList" class="space-y-2 max-h-60 overflow-y-auto text-xs text-gray-600">
                     <li class="text-gray-400 italic">目前尚無 any 紀錄...</li>
                 </ul>
             </div>
-        </div>
+
 
         <!-- 體態折線圖 -->
         <div class="p-6 border-t border-gray-100">
