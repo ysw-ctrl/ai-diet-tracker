@@ -392,6 +392,39 @@ function addLog(content) {
                 adviceText.innerText = "連線失敗，營養師去喝水了 nudge，晚點再試！";
             }
         }
+        // 新增功能：刪除最近一筆紀錄並自動還原熱量
+        function deleteLastLog() {
+            if (recentLogs.length === 0) {
+                alert("目前沒有任何紀錄可以刪除！");
+                return;
+            }
+
+            const lastLog = recentLogs[0];
+            const confirmDelete = confirm(`確定要刪除最近一筆紀錄嗎？\n\n「${lastLog.content}」`);
+            if (!confirmDelete) return;
+
+            // 智慧還原機制：利用正則表達式自動偵測日誌中的卡路里並扣除
+            const foodMatch = lastLog.content.match(/\(補充：(\d+)\s*kcal\)/);
+            const exerciseMatch = lastLog.content.match(/\(增加額外需求：(\d+)\s*kcal\)/);
+
+            if (foodMatch) {
+                const cals = parseInt(foodMatch[1]);
+                savedFoodCals = Math.max(0, savedFoodCals - cals);
+                localStorage.setItem('today_food_cals', savedFoodCals);
+            } else if (exerciseMatch) {
+                const cals = parseInt(exerciseMatch[1]);
+                savedExerciseCals = Math.max(0, savedExerciseCals - cals);
+                localStorage.setItem('today_exercise_cals', savedExerciseCals);
+            }
+
+            // 移除最上方（最新）的一筆紀錄
+            recentLogs.shift();
+            
+            // 儲存至本地並同步更新 UI
+            localStorage.setItem('diet_logs', JSON.stringify(recentLogs));
+            updateLogUI();
+            refreshCalorieUI();
+        }
 
         // 頁面初始化載入
         updateLogUI();
